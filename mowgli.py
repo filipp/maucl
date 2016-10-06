@@ -129,11 +129,12 @@ if __name__ == '__main__':
 
     print("* Checking for updates...")
 
-    try:
-        if os.path.exists(sys.argv[2]):
-            updates = check(sys.argv[2])
-    except IndexError as e:
-        pass
+    if len(sys.argv) > 2:
+        if not os.path.exists(sys.argv[2]):
+            raise Exception('Invalid MAU pref file %s' % sys.argv[2])
+        updates = check(sys.argv[2])
+    else:
+        updates = check()
 
     updates = [u for u in updates if u['needs_update']]
 
