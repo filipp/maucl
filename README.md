@@ -18,9 +18,9 @@ To update all installed Office applications, just issue:
 
 ```sudo mowgli.py -ia```
 
-You can also supply an optional path to the MAU pref file:
+You can also supply an optional path to the home folder:
 
-```sudo mowgli.py -ia /Users/shared/Library/Preferences/com.microsoft.autoupdate2.plist```
+```sudo mowgli.py -ia /Users/shared```
 
 
 Special thanks to [Charles](https://www.charlesproxy.com) - the excellent web debugging proxy for making the reverse-engineering possible!

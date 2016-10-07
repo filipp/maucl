@@ -17,7 +17,6 @@ NAMES = {
     'PPT315': 'PowerPoint',
     'MSWD15': 'Word',
     'MSau03': 'AutoUpdate',
-    'Merp2': 'Error Reporting',
     'SLVT': 'Silverlight',
 }
 
@@ -35,11 +34,15 @@ def get_plist(path):
     return plistlib.readPlistFromString(plist)
 
 
-def check(pref='~/Library/Preferences/com.microsoft.autoupdate2.plist'):
+def check(home=None, pref='Library/Preferences/com.microsoft.autoupdate2.plist'):
     """Collect info about available updates.
 
     """
     results = []
+
+    if home is None:
+        home = os.getenv('HOME')
+        pref = os.path.join(home, pref)
 
     try:
         plist = get_plist(os.path.expanduser(pref))
@@ -52,6 +55,10 @@ def check(pref='~/Library/Preferences/com.microsoft.autoupdate2.plist'):
         path, info = a
         app_id = info.get('Application ID')
 
+        # Skip Microsoft Error Reporting
+        if app_id == 'Merp2':
+            continue
+
         try:
             app_info = get_plist(os.path.join(path, 'Contents/Info.plist'))
         except Exception as e:
@@ -63,13 +70,17 @@ def check(pref='~/Library/Preferences/com.microsoft.autoupdate2.plist'):
 
         # Lync (UCCP14) is special
         filename = '0409%s.xml' if app_id == 'UCCP14' else '0409%s-chk.xml'
-        conn = httplib.HTTPSConnection('officecdn.microsoft.com')
 
-        conn.request("GET", BASEURL + filename % app_id)
-        data = conn.getresponse().read()
+        try:
+            conn = httplib.HTTPSConnection('officecdn.microsoft.com')
+            conn.request("GET", BASEURL + filename % app_id)
+            data = conn.getresponse().read()
+        except Exception as e:
+            raise Exception('Failed to check for updates: %s' % e)
 
         try:
             p = plistlib.readPlistFromString(data)
+
             if app_id == 'UCCP14':  # Lync being special again
                 p = p[0]
                 result['location'] = p.get('Location')
@@ -88,7 +99,7 @@ def check(pref='~/Library/Preferences/com.microsoft.autoupdate2.plist'):
                     # Fetch the update details
                     updates = plistlib.readPlistFromString(data)
                     for i in updates:
-                        if i.get('Baseline Version') == result['installed']:
+                        if i.get('Baseline Version') == result['installed'] or app_id == 'MSau03':
                             result['location'] = i.get('Location')
                             result['size'] = i.get('FullUpdaterSize')
                             results.append(result)
@@ -124,10 +135,10 @@ def install(pkg):
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print("usage: {0} [-l | -i [pref]".format(os.path.basename(sys.argv[0])))
+        print("usage: {0} [-l | -i [home]".format(os.path.basename(sys.argv[0])))
         sys.exit(1)
 
-    print("* Checking for updates...")
+    print("* Finding available software")
 
     if len(sys.argv) > 2:
         if not os.path.exists(sys.argv[2]):
@@ -140,7 +151,7 @@ if __name__ == '__main__':
 
     if sys.argv[1] == '-l':
         for u in updates:
-            print("{id}\t{name}\t{installed}\t{available}\t{size}".format(**u))
+            print("  * {id}\n       {name} {installed} - {available} [{type}]".format(**u))
 
     if sys.argv[1] == '-ia':
         for u in updates:
