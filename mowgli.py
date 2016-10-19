@@ -128,7 +128,10 @@ def download(url):
 
 
 def install(pkg):
-    subprocess.call(['/usr/sbin/installer', '-pkg', pkg, '-target', '/'])
+    r = subprocess.call(['/usr/sbin/installer', '-pkg', pkg, '-target', '/'])
+    if r > 0:
+        raise Exception('Failed to install package %s' % pkg)
+
     os.remove(pkg)
 
 
