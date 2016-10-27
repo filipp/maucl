@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Microsoft AutoUpdate Command Line Utility."""
 
 import os
 import sys
@@ -22,22 +23,28 @@ NAMES = {
 
 
 BASEURL = '/pr/%s/OfficeMac/' % UUID
+PREF_PATH = 'Library/Preferences/com.microsoft.autoupdate2.plist'
 
 
 def get_plist(path):
-    """Return plist dict regardless of format.
-
-    """
+    """Return plist dict regardless of format."""
     plist = subprocess.check_output(['/usr/bin/plutil',
                                      '-convert', 'xml1',
                                      path, '-o', '-'])
     return plistlib.readPlistFromString(plist)
 
 
-def check(home=None, pref='Library/Preferences/com.microsoft.autoupdate2.plist'):
-    """Collect info about available updates.
+def set_pref(k='HowToCheck', v='Manual'):
+    """Set AU pref k to v."""
+    subprocess.call(['/usr/bin/defaults',
+                     'write',
+                     'com.microsoft.autoupdate2',
+                     k,
+                     v])
 
-    """
+
+def check(home=None, pref=PREF_PATH):
+    """Collect info about available updates."""
     results = []
 
     if home is None:
@@ -113,6 +120,7 @@ def check(home=None, pref='Library/Preferences/com.microsoft.autoupdate2.plist')
 
 
 def download(url):
+    """Download url to temporary folder."""
     temp = os.path.join(tempfile.gettempdir(), 'mowgli')
 
     if not os.path.exists(temp):
@@ -128,6 +136,7 @@ def download(url):
 
 
 def install(pkg):
+    """Install a package."""
     r = subprocess.call(['/usr/sbin/installer', '-pkg', pkg, '-target', '/'])
     if r > 0:
         raise Exception('Failed to install package %s' % pkg)
@@ -140,6 +149,16 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("usage: {0} [-l | -i [home]".format(os.path.basename(sys.argv[0])))
         sys.exit(1)
+
+    if sys.argv[1] == 'enable':
+        set_pref('HowToCheck', 'Manual')
+        print('* Automatic updates enabled')
+        sys.exit(0)
+
+    if sys.argv[1] == 'disable':
+        set_pref('HowToCheck', 'Automatic')
+        print('* Automatic updates disabled')
+        sys.exit(0)
 
     print("* Finding available software")
 
