@@ -49,7 +49,8 @@ def check(home=None, pref=PREF_PATH):
 
     if home is None:
         home = os.getenv('HOME')
-        pref = os.path.join(home, pref)
+
+    pref = os.path.join(home, pref)
 
     try:
         plist = get_plist(os.path.expanduser(pref))
