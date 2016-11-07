@@ -1,6 +1,6 @@
 ### Introduction
 
-mowgli (from MAUCLI (Microsoft AutoUpdate Command Line Interface)) is a command-line tool for installing Office 2016 updates.
+maucl (Microsoft AutoUpdate Command Line) is a command-line tool for installing Office 2016 updates.
 
 
 ### System Requirements
@@ -12,15 +12,15 @@ mowgli (from MAUCLI (Microsoft AutoUpdate Command Line Interface)) is a command-
 
 To list all available updates:
 
-```mowgli.py -l```
+```maucl.py -l```
 
 To update all installed Office applications, just issue:
 
-```sudo mowgli.py -ia```
+```sudo maucl.py -ia```
 
 You can also supply an optional path to the home folder:
 
-```sudo mowgli.py -ia /Users/shared```
+```sudo maucl.py -ia /Users/shared```
 
 
 Special thanks to [Charles](https://www.charlesproxy.com) - the excellent web debugging proxy for making the reverse-engineering possible!
